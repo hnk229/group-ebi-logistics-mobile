@@ -1,0 +1,25 @@
+# Splash natif (instantané) — affiché avant que Flutter ne démarre.
+# Génère les ressources via: flutter pub run flutter_native_splash:create
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/logo.jpg
+  branding: assets/images/logo.jpg
+  branding_mode: bottom
+
+  color_dark: "#0F172A"
+  image_dark: assets/images/logo.jpg
+
+  android_12:
+    color: "#FFFFFF"
+    image: assets/images/logo.jpg
+    icon_background_color: "#FFFFFF"
+    color_dark: "#0F172A"
+    icon_background_color_dark: "#0F172A"
+
+  android: true
+  ios: true
+  web: false
+
+  fullscreen: false
+  android_gravity: center
+  ios_content_mode: center
