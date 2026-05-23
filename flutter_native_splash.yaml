@@ -1,20 +1,26 @@
 # Splash natif (instantané) — affiché avant que Flutter ne démarre.
-# Génère les ressources via: flutter pub run flutter_native_splash:create
+# Génère les ressources via : dart run flutter_native_splash:create
+#
+# Stratégie : matcher EXACTEMENT le SplashPage Dart custom (gradient bleu EBI
+# avec logo blanc centré). Sur Android 12+, le système impose son propre splash
+# (windowSplashScreen) — on ne peut pas le supprimer, mais en lui donnant la
+# même couleur de fond que le SplashPage Dart, la transition devient invisible :
+# l'utilisateur ne voit qu'un seul splash continu.
 flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/images/logo.jpg
-  branding: assets/images/logo.jpg
-  branding_mode: bottom
+  # Fond bleu primaire EBI (= EbiColors.blue), identique à celui du SplashPage.
+  color: "#0E91C5"
+  color_dark: "#0E91C5"
 
-  color_dark: "#0F172A"
-  image_dark: assets/images/logo.jpg
+  # PAS de logo ni de branding ici : le logo est dessiné par le SplashPage
+  # Dart (avec animation fade+scale). Garder le splash natif sans logo évite
+  # le clignotement d'un logo statique qui apparaît puis disparaît.
 
+  # Android 12+ : même fond bleu, sans icône.
   android_12:
-    color: "#FFFFFF"
-    image: assets/images/logo.jpg
-    icon_background_color: "#FFFFFF"
-    color_dark: "#0F172A"
-    icon_background_color_dark: "#0F172A"
+    color: "#0E91C5"
+    color_dark: "#0E91C5"
+    icon_background_color: "#0E91C5"
+    icon_background_color_dark: "#0E91C5"
 
   android: true
   ios: true

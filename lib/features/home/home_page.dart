@@ -189,9 +189,9 @@ class HomePage extends ConsumerWidget {
 
   String _greetingFor(String name) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Bonjour ☀️';
-    if (hour < 18) return 'Bon après-midi 👋';
-    return 'Bonsoir 🌙';
+    if (hour < 12) return 'Bonjour';
+    if (hour < 18) return 'Bon après-midi';
+    return 'Bonsoir';
   }
 }
 

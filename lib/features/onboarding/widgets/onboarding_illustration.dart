@@ -61,14 +61,14 @@ class _WelcomeIllustration extends StatelessWidget {
           child: const Icon(Icons.public, size: 100, color: EbiColors.white),
         ),
         // Petite carte "Chine"
-        Positioned(
+        const Positioned(
           top: 35, left: 30,
-          child: _MiniCard(label: '中国', emoji: '📦'),
+          child: _MiniCard(label: '中国', icon: Icons.inventory_2_outlined),
         ),
         // Petite carte "Afrique"
-        Positioned(
+        const Positioned(
           bottom: 35, right: 30,
-          child: _MiniCard(label: 'Afrique', emoji: '🏠'),
+          child: _MiniCard(label: 'Afrique', icon: Icons.home_outlined),
         ),
       ],
     );
@@ -243,9 +243,9 @@ class _PaymentIllustration extends StatelessWidget {
 }
 
 class _MiniCard extends StatelessWidget {
-  const _MiniCard({required this.label, required this.emoji});
+  const _MiniCard({required this.label, required this.icon});
   final String label;
-  final String emoji;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +265,7 @@ class _MiniCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 14)),
+          Icon(icon, size: 14, color: EbiColors.blue),
           const SizedBox(width: 6),
           Text(
             label,
