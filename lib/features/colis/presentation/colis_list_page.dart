@@ -21,6 +21,13 @@ class ColisListPage extends ConsumerWidget {
         title: const Text('Mes colis'),
         backgroundColor: EbiColors.white,
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/colis/new'),
+        backgroundColor: EbiColors.blue,
+        foregroundColor: EbiColors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('Déclarer un colis'),
+      ),
       body: items.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => _ErrorState(onRetry: () => ref.invalidate(colisListProvider)),

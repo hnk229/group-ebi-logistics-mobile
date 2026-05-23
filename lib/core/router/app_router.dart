@@ -9,6 +9,7 @@ import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/register_page.dart';
 import '../../features/auth/presentation/reset_password_page.dart';
 import '../../features/chat/presentation/chat_page.dart';
+import '../../features/colis/presentation/add_colis_page.dart';
 import '../../features/colis/presentation/colis_detail_page.dart';
 import '../../features/colis/presentation/colis_list_page.dart';
 import '../../features/home/home_page.dart';
@@ -74,6 +75,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Pages secondaires (hors shell — push)
+      GoRoute(path: '/colis/new', builder: (_, __) => const AddColisPage()),
       GoRoute(path: '/colis/:id', builder: (_, s) =>
         ColisDetailPage(colisId: int.parse(s.pathParameters['id']!))),
       GoRoute(path: '/chat', builder: (_, __) => const ChatPage()),
