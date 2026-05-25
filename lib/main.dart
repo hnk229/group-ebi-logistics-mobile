@@ -17,6 +17,11 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  // Mode immersif : masque la barre de navigation Android (et la status bar).
+  // immersiveSticky → elles réapparaissent temporairement au swipe depuis le bord
+  // puis se recachent automatiquement.
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   // Initialise les locales intl (pour DateFormat fr_FR).
   await initializeDateFormatting('fr_FR', null);
 

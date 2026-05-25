@@ -106,6 +106,11 @@ class AuthRepository {
     }
   }
 
+  /// PUT /api/profile/cargo — le client choisit (ou change) son cargo.
+  Future<void> chooseCargo(int cargoId) async {
+    await _api.put('/api/profile/cargo', data: {'cargo_id': cargoId});
+  }
+
   /// POST /api/auth/logout (révoque le token courant côté serveur)
   Future<void> logout() async {
     try {

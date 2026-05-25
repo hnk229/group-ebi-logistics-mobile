@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/config/env.dart';
 import '../../core/storage/prefs.dart';
 import '../../core/theme/colors.dart';
-import '../../core/theme/typography.dart';
 import '../auth/presentation/auth_controller.dart';
 
 /// Écran de démarrage animé Flutter affiché au-dessus du splash natif.
@@ -57,14 +56,22 @@ class _SplashPageState extends ConsumerState<SplashPage> with TickerProviderStat
   }
 
   Future<void> _decideNextRoute() async {
-    // Garantit au moins 1.6s de splash pour laisser l'animation se déployer.
-    final minDelay = Future.delayed(const Duration(milliseconds: 1600));
+    // Le splash sert à masquer le temps de chargement réel (bootstrap réseau) :
+    // on garde juste un court minimum pour que l'animation ne « flashe » pas,
+    // puis on route dès que le chargement est terminé.
+    final minDelay = Future.delayed(const Duration(milliseconds: 500));
 
     final prefs = ref.read(sharedPrefsProvider);
     final hasSeenOnboarding = prefs.getBool(Env.storageOnboardingSeen) ?? false;
 
-    // Restaure la session si un token est présent + récupère /me.
-    await ref.read(authControllerProvider.notifier).bootstrap();
+    // Restaure la session + récupère /me, mais sans bloquer le démarrage si le
+    // réseau est lent : au-delà de 6s on continue (le routing renverra au login).
+    try {
+      await ref.read(authControllerProvider.notifier).bootstrap()
+          .timeout(const Duration(seconds: 6));
+    } catch (_) {
+      // Timeout / erreur réseau : on poursuit avec l'état courant.
+    }
     final auth = ref.read(authControllerProvider);
 
     await minDelay;
@@ -73,11 +80,9 @@ class _SplashPageState extends ConsumerState<SplashPage> with TickerProviderStat
     if (!hasSeenOnboarding) {
       context.go('/onboarding');
     } else if (auth is AuthAuthenticated) {
-      if (!auth.user.emailVerified) {
-        context.go('/auth/verify-email');
-      } else {
-        context.go('/home');
-      }
+      // TEMPORAIRE : vérification email désactivée (pas de mail pro configuré).
+      // À réactiver : if (!auth.user.emailVerified) context.go('/auth/verify-email');
+      context.go('/home');
     } else {
       context.go('/auth/login');
     }
@@ -94,6 +99,11 @@ class _SplashPageState extends ConsumerState<SplashPage> with TickerProviderStat
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        // width/height infinity : sans ça, le Container se dimensionne sur son
+        // contenu (logo + texte) et n'occupe qu'une partie de l'écran sur certains
+        // appareils — d'où le fond « moitié bleue / moitié blanche ».
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -135,52 +145,30 @@ class _SplashPageState extends ConsumerState<SplashPage> with TickerProviderStat
 
               FadeTransition(
                 opacity: _textFade,
-                child: Column(
-                  children: [
-                    Text(
-                      'EBI Logistics',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: EbiColors.white, fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Vos colis Chine → Afrique',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: EbiColors.white.withValues(alpha: 0.85),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'EBI Logistics',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: EbiColors.white, fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
 
               const Spacer(flex: 4),
 
-              // Indicateur chargement discret + accroche
+              // Animation de chargement discrète
               FadeTransition(
                 opacity: _textFade,
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: 40, height: 40,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation(EbiColors.white.withValues(alpha: 0.8)),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    Text(
-                      'Made in Africa for Africa',
-                      style: EbiTypography.mono(
-                        fontSize: 11, color: EbiColors.white.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
+                child: SizedBox(
+                  width: 38, height: 38,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation(EbiColors.white.withValues(alpha: 0.85)),
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 48),
             ],
           ),
         ),

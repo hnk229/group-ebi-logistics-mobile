@@ -35,7 +35,6 @@ class _AddColisPageState extends ConsumerState<AddColisPage> {
   final _formKey = GlobalKey<FormState>();
   final _villeCtrl = TextEditingController();
   final _telCtrl = TextEditingController();
-  final _trackingCtrl = TextEditingController();
 
   String _transportLabel = 'Avion'; // Avion | Bateau
   int? _transportTypeId;
@@ -56,7 +55,6 @@ class _AddColisPageState extends ConsumerState<AddColisPage> {
   void dispose() {
     _villeCtrl.dispose();
     _telCtrl.dispose();
-    _trackingCtrl.dispose();
     super.dispose();
   }
 
@@ -141,7 +139,6 @@ class _AddColisPageState extends ConsumerState<AddColisPage> {
         transport: _transportLabel,
         ville: _villeCtrl.text,
         telephoneDestinataire: _telCtrl.text,
-        trackingNumber: _trackingCtrl.text,
         articles: _articles.where((a) => !a.isEmpty).toList(),
       );
 
@@ -234,13 +231,8 @@ class _AddColisPageState extends ConsumerState<AddColisPage> {
                   keyboardType: TextInputType.phone,
                   hint: '+228 90 00 00 00',
                 ),
-                const SizedBox(height: 12),
-                EbiTextField(
-                  label: 'N° de suivi expéditeur (optionnel)',
-                  controller: _trackingCtrl,
-                  hint: 'Code Taobao / AliExpress / DHL',
-                  helper: 'Si votre vendeur vous a donné un code de suivi.',
-                ),
+                // Le numéro de suivi se renseigne par article (voir « Code de suivi »
+                // dans chaque article), pas au niveau global du colis.
               ],
             ),
           ),

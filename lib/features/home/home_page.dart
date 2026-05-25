@@ -99,6 +99,42 @@ class HomePage extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  // Bandeau : choisir son cargo (si pas encore défini après inscription)
+                  if (user != null && user.cargo == null) ...[
+                    InkWell(
+                      onTap: () => context.push('/choose-cargo'),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: EbiColors.bluePale,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: EbiColors.blue.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.local_shipping, color: EbiColors.blue),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Choisissez votre cargo',
+                                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: EbiColors.ink)),
+                                  SizedBox(height: 2),
+                                  Text('Indispensable pour recevoir vos colis et obtenir votre adresse en Chine.',
+                                      style: TextStyle(fontSize: 12, color: EbiColors.ink2, height: 1.4)),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right, color: EbiColors.blue),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
                   // KPI carte
                   stats.when(
                     loading: () => const _StatsSkeleton(),
@@ -144,34 +180,42 @@ class HomePage extends ConsumerWidget {
                     const _SectionTitle('Mon cargo'),
                     const SizedBox(height: 12),
                     Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44, height: 44,
-                              decoration: BoxDecoration(
-                                color: EbiColors.bluePale,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(Icons.local_shipping, color: EbiColors.blue),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user!.cargo!.nom,
-                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => context.push('/choose-cargo'),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44, height: 44,
+                                decoration: BoxDecoration(
+                                  color: EbiColors.bluePale,
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                if (user.cargo!.codePrefix != null)
+                                child: const Icon(Icons.local_shipping, color: EbiColors.blue),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    'Préfixe : ${user.cargo!.codePrefix}',
-                                    style: EbiTypography.mono(fontSize: 11),
+                                    user!.cargo!.nom,
+                                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                                   ),
-                              ],
-                            )),
-                          ],
+                                  if (user.cargo!.codePrefix != null)
+                                    Text(
+                                      'Préfixe : ${user.cargo!.codePrefix}',
+                                      style: EbiTypography.mono(fontSize: 11),
+                                    ),
+                                ],
+                              )),
+                              const Row(children: [
+                                Text('Changer', style: TextStyle(fontSize: 12, color: EbiColors.blue, fontWeight: FontWeight.w600)),
+                                Icon(Icons.chevron_right, color: EbiColors.blue, size: 18),
+                              ]),
+                            ],
+                          ),
                         ),
                       ),
                     ),

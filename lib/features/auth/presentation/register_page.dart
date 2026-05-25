@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/config/env.dart';
 import '../../../core/theme/colors.dart';
 import '../../../shared/widgets/ebi_button.dart';
 import '../../../shared/widgets/ebi_text_field.dart';
@@ -26,13 +28,24 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _pwdCtrl = TextEditingController();
   final _villeCtrl = TextEditingController();
 
-  int? _selectedCargo;
   int? _selectedPays;
   bool _showPwd = false;
   bool _loading = false;
   bool _acceptTerms = false;
   Map<String, List<String>> _errors = {};
   String? _globalError;
+
+  /// Ouvre les conditions d'utilisation sur le site web.
+  Future<void> _openTerms() async {
+    final uri = Uri.parse('${Env.apiBaseUrl}/conditions-generales');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible d\'ouvrir les conditions.')),
+        );
+      }
+    }
+  }
 
   Future<void> _submit() async {
     if (!_acceptTerms) {
@@ -51,7 +64,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         email: _emailCtrl.text.trim(),
         password: _pwdCtrl.text,
         phone: _phoneCtrl.text.trim(),
-        cargoId: _selectedCargo,
+        cargoId: null, // le cargo est choisi après l'inscription, depuis l'accueil
         paysId: _selectedPays,
         ville: _villeCtrl.text.trim(),
       );
@@ -81,7 +94,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cargosAsync = ref.watch(cargosFutureProvider);
     final paysAsync = ref.watch(paysFutureProvider);
 
     return Scaffold(
@@ -132,6 +144,32 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 14),
+
+                // Pays + ville de l'utilisateur
+                paysAsync.when(
+                  loading: () => const _LoadingTile('Chargement des pays…'),
+                  error: (_, __) => const SizedBox(),
+                  data: (list) => _DropdownField<int>(
+                    label: 'Pays',
+                    value: _selectedPays,
+                    error: _errors['pays_id']?.first,
+                    onChanged: (v) => setState(() => _selectedPays = v),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('— Sélectionner —')),
+                      ...list.map((p) => DropdownMenuItem(value: p.id, child: Text(p.nom))),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                EbiTextField(
+                  label: 'Ville', controller: _villeCtrl,
+                  hint: 'Lomé, Cotonou, Abidjan…',
+                  error: _errors['ville']?.first,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 14),
+
+                // Mot de passe — toujours en dernier champ.
                 EbiTextField(
                   label: 'Mot de passe', controller: _pwdCtrl,
                   obscure: !_showPwd, required: true,
@@ -145,69 +183,41 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 ),
 
                 const SizedBox(height: 20),
-                const _SectionTitle('Votre destination (optionnel)'),
-                const SizedBox(height: 12),
 
-                // Pays
-                paysAsync.when(
-                  loading: () => const _LoadingTile('Chargement des pays…'),
-                  error: (_, __) => const SizedBox(),
-                  data: (list) => _DropdownField<int>(
-                    label: 'Pays de réception',
-                    value: _selectedPays,
-                    error: _errors['pays_id']?.first,
-                    onChanged: (v) => setState(() => _selectedPays = v),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('— Aucun —')),
-                      ...list.map((p) => DropdownMenuItem(value: p.id, child: Text(p.nom))),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                EbiTextField(
-                  label: 'Ville', controller: _villeCtrl,
-                  hint: 'Lomé, Cotonou, Abidjan…',
-                  error: _errors['ville']?.first,
-                ),
-
-                const SizedBox(height: 20),
-                const _SectionTitle('Votre partenaire cargo (optionnel)'),
-                const SizedBox(height: 8),
-                const Text(
-                  'Le cargo auprès duquel vous expédiez vos colis. Vous pourrez le choisir plus tard.',
-                  style: TextStyle(fontSize: 12, color: EbiColors.ink3, height: 1.4),
-                ),
-                const SizedBox(height: 12),
-                cargosAsync.when(
-                  loading: () => const _LoadingTile('Chargement des cargos…'),
-                  error: (_, __) => const SizedBox(),
-                  data: (list) => _DropdownField<int>(
-                    label: 'Cargo partenaire',
-                    value: _selectedCargo,
-                    error: _errors['cargo_id']?.first,
-                    onChanged: (v) => setState(() => _selectedCargo = v),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('— Aucun —')),
-                      ...list.map((c) => DropdownMenuItem(
-                        value: c.id,
-                        child: Text('${c.nom}${c.paysNom != null ? ' · ${c.paysNom}' : ''}'),
-                      )),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // CGU
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  value: _acceptTerms,
-                  onChanged: (v) => setState(() => _acceptTerms = v ?? false),
-                  title: const Text(
-                    'J\'accepte les conditions d\'utilisation et la politique de confidentialité.',
-                    style: TextStyle(fontSize: 12, color: EbiColors.ink2, height: 1.4),
-                  ),
+                // CGU — la case d'acceptation + lien vers les conditions sur le site web.
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: _acceptTerms,
+                      onChanged: (v) => setState(() => _acceptTerms = v ?? false),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            const Text("J'accepte les ",
+                                style: TextStyle(fontSize: 12, color: EbiColors.ink2)),
+                            GestureDetector(
+                              onTap: _openTerms,
+                              child: const Text(
+                                'conditions d\'utilisation',
+                                style: TextStyle(
+                                  fontSize: 12, color: EbiColors.blue,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            const Text('.', style: TextStyle(fontSize: 12, color: EbiColors.ink2)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
 
                 if (_globalError != null) ...[
@@ -245,19 +255,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       ),
     );
   }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
-  final String text;
-  @override
-  Widget build(BuildContext context) => Text(
-    text.toUpperCase(),
-    style: const TextStyle(
-      fontSize: 11, fontWeight: FontWeight.w600,
-      color: EbiColors.ink3, letterSpacing: 0.6,
-    ),
-  );
 }
 
 class _LoadingTile extends StatelessWidget {

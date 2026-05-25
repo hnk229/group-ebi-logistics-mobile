@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/colors.dart';
+import '../../../shared/widgets/notification_bell.dart';
 import '../../auth/presentation/auth_controller.dart';
 
 /// Page Menu (4ᵉ onglet) : raccourcis vers profil, paramètres, aide, déconnexion.
@@ -19,6 +20,7 @@ class MenuPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Plus'),
         backgroundColor: EbiColors.white,
+        actions: const [NotificationBell()],
       ),
       body: ListView(children: [
         // Card user header
@@ -38,6 +40,16 @@ class MenuPage extends ConsumerWidget {
               Text(user?.name ?? '', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
               if (user?.email != null) Text(user!.email,
                 style: const TextStyle(fontSize: 12, color: EbiColors.ink3)),
+              if (user?.cargo != null) Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(children: [
+                  const Icon(Icons.local_shipping, size: 13, color: EbiColors.blue),
+                  const SizedBox(width: 4),
+                  Flexible(child: Text(user!.cargo!.nom,
+                    style: const TextStyle(fontSize: 12, color: EbiColors.blue, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis)),
+                ]),
+              ),
             ])),
           ]),
         ),
@@ -47,6 +59,11 @@ class MenuPage extends ConsumerWidget {
           _MenuItem(
             icon: Icons.person_outline, label: 'Mon profil',
             onTap: () => context.push('/profile'),
+          ),
+          _MenuItem(
+            icon: Icons.local_shipping_outlined,
+            label: user?.cargo != null ? 'Changer de cargo' : 'Choisir mon cargo',
+            onTap: () => context.push('/choose-cargo'),
           ),
           _MenuItem(
             icon: Icons.notifications_outlined, label: 'Notifications',

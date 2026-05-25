@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
 import '../../../shared/utils/date_format.dart';
+import '../../../shared/widgets/notification_bell.dart';
 import '../data/colis_models.dart';
 import '../data/colis_repository.dart';
 
@@ -20,6 +21,7 @@ class ColisListPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Mes colis'),
         backgroundColor: EbiColors.white,
+        actions: const [NotificationBell()],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/colis/new'),

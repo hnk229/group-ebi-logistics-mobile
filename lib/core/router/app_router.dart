@@ -8,6 +8,7 @@ import '../../features/auth/presentation/forgot_password_page.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/register_page.dart';
 import '../../features/auth/presentation/reset_password_page.dart';
+import '../../features/auth/presentation/choose_cargo_page.dart';
 import '../../features/chat/presentation/chat_page.dart';
 import '../../features/colis/presentation/add_colis_page.dart';
 import '../../features/colis/presentation/colis_detail_page.dart';
@@ -36,10 +37,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isAuthRoute ? null : '/auth/login';
       }
       if (auth is AuthAuthenticated) {
-        if (!auth.user.emailVerified && path != '/auth/verify-email') {
-          return '/auth/verify-email';
-        }
-        if (auth.user.emailVerified && isAuthRoute && path != '/auth/verify-email') {
+        // TEMPORAIRE : vérification email désactivée (pas de mail pro configuré).
+        // À réactiver : rediriger vers /auth/verify-email si !auth.user.emailVerified.
+        if (isAuthRoute && path != '/auth/verify-email') {
           return '/home';
         }
       }
@@ -78,6 +78,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/colis/new', builder: (_, __) => const AddColisPage()),
       GoRoute(path: '/colis/:id', builder: (_, s) =>
         ColisDetailPage(colisId: int.parse(s.pathParameters['id']!))),
+      GoRoute(path: '/choose-cargo', builder: (_, __) => const ChooseCargoPage()),
       GoRoute(path: '/chat', builder: (_, __) => const ChatPage()),
       GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
       GoRoute(path: '/notifications', builder: (_, __) => const NotificationsPage()),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
 import '../../../shared/widgets/ebi_button.dart';
+import '../../../shared/widgets/notification_bell.dart';
 import '../data/address_repository.dart';
 
 /// Page principale : adresse Chine copiable pour AliExpress / Taobao / 1688 / WeChat.
@@ -28,6 +29,7 @@ class _AddressPageState extends ConsumerState<AddressPage> {
       appBar: AppBar(
         title: const Text('Adresse Chine'),
         backgroundColor: EbiColors.white,
+        actions: const [NotificationBell()],
       ),
       body: SafeArea(
         child: Column(children: [
@@ -71,9 +73,9 @@ class _AddressPageState extends ConsumerState<AddressPage> {
             child: Row(children: [
               const Icon(Icons.info_outline, color: EbiColors.blue, size: 18),
               const SizedBox(width: 8),
-              Expanded(child: Text(
-                'Copiez cette adresse dans AliExpress, Taobao, 1688 ou WeChat comme adresse de livraison.',
-                style: const TextStyle(fontSize: 12, color: EbiColors.ink2, height: 1.4),
+              const Expanded(child: Text(
+                'Copiez cette adresse et envoyez-la à votre fournisseur.',
+                style: TextStyle(fontSize: 12, color: EbiColors.ink2, height: 1.4),
               )),
             ]),
           ),
@@ -214,9 +216,8 @@ class _AddressContent extends StatelessWidget {
                 style: TextStyle(fontSize: 10, color: EbiColors.ink3, letterSpacing: 0.6, fontWeight: FontWeight.w700)),
               const SizedBox(height: 10),
               _Step(num: '1', text: 'Copiez l\'adresse ci-dessus.'),
-              _Step(num: '2', text: 'Allez sur AliExpress / Taobao / 1688 et collez-la comme adresse de livraison.'),
-              _Step(num: '3', text: 'Le vendeur enverra votre commande à notre entrepôt en Chine.'),
-              _Step(num: '4', text: 'Vous recevrez une notification dès que le colis arrive chez nous.'),
+              _Step(num: '2', text: 'Envoyez-la à votre fournisseur comme adresse de livraison.'),
+              _Step(num: '3', text: 'Vous serez notifié dès l\'arrivée de votre colis à l\'entrepôt.'),
             ]),
           ),
         ),

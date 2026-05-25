@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bleu primaire EBI — fond du splash natif (= EbiColors.blue côté Dart). -->
+    <color name="ebi_splash">#0E91C5</color>
+</resources>
