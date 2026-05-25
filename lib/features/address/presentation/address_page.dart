@@ -18,11 +18,11 @@ class AddressPage extends ConsumerStatefulWidget {
 }
 
 class _AddressPageState extends ConsumerState<AddressPage> {
-  String _type = 'aerial';
+  String? _type;
 
   @override
   Widget build(BuildContext context) {
-    final addr = ref.watch(addressProvider(_type));
+    final modesAsync = ref.watch(shippingModesProvider);
 
     return Scaffold(
       backgroundColor: EbiColors.surface,
@@ -32,69 +32,111 @@ class _AddressPageState extends ConsumerState<AddressPage> {
         actions: const [NotificationBell()],
       ),
       body: SafeArea(
-        child: Column(children: [
-          // Tabs Aérien / Maritime
-          Container(
-            color: EbiColors.white,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: EbiColors.surface2,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(children: [
-                Expanded(child: _TabBtn(
-                  label: 'Aérien',
-                  icon: Icons.flight,
-                  active: _type == 'aerial',
-                  onTap: () => setState(() => _type = 'aerial'),
-                )),
-                Expanded(child: _TabBtn(
-                  label: 'Maritime',
-                  icon: Icons.directions_boat,
-                  active: _type == 'maritime',
-                  onTap: () => setState(() => _type = 'maritime'),
-                )),
-              ]),
-            ),
+        child: modesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, __) => _ErrorState(
+            message: 'Impossible de charger vos adresses.',
+            onRetry: () => ref.invalidate(shippingModesProvider),
           ),
-
-          const SizedBox(height: 8),
-
-          // Carte info
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: EbiColors.bluePale,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(children: [
-              const Icon(Icons.info_outline, color: EbiColors.blue, size: 18),
-              const SizedBox(width: 8),
-              const Expanded(child: Text(
-                'Copiez cette adresse et envoyez-la à votre fournisseur.',
-                style: TextStyle(fontSize: 12, color: EbiColors.ink2, height: 1.4),
-              )),
-            ]),
-          ),
-
-          // Adresse
-          Expanded(
-            child: addr.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, __) => _ErrorState(
-                message: e.toString(),
-                onRetry: () => ref.invalidate(addressProvider(_type)),
-              ),
-              data: (a) => _AddressContent(address: a, type: _type),
-            ),
-          ),
-        ]),
+          data: (modes) {
+            // Aucun mode loué par le cargo → message clair (pas de loader infini).
+            if (modes.isEmpty) {
+              return const _EmptyModes();
+            }
+            // Sélectionne par défaut le premier mode disponible.
+            final current = (_type != null && modes.contains(_type)) ? _type! : modes.first;
+            return _buildForMode(modes, current);
+          },
+        ),
       ),
     );
   }
+
+  Widget _buildForMode(List<String> modes, String current) {
+    final addr = ref.watch(addressProvider(current));
+    return Column(children: [
+      // Tabs : affichés uniquement si plusieurs modes disponibles.
+      if (modes.length > 1)
+        Container(
+          color: EbiColors.white,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: EbiColors.surface2,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(children: [
+              if (modes.contains('aerial'))
+                Expanded(child: _TabBtn(
+                  label: 'Aérien', icon: Icons.flight,
+                  active: current == 'aerial',
+                  onTap: () => setState(() => _type = 'aerial'),
+                )),
+              if (modes.contains('maritime'))
+                Expanded(child: _TabBtn(
+                  label: 'Maritime', icon: Icons.directions_boat,
+                  active: current == 'maritime',
+                  onTap: () => setState(() => _type = 'maritime'),
+                )),
+            ]),
+          ),
+        ),
+
+      const SizedBox(height: 8),
+
+      Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: EbiColors.bluePale,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Row(children: [
+          Icon(Icons.info_outline, color: EbiColors.blue, size: 18),
+          SizedBox(width: 8),
+          Expanded(child: Text(
+            'Copiez cette adresse et envoyez-la à votre fournisseur.',
+            style: TextStyle(fontSize: 12, color: EbiColors.ink2, height: 1.4),
+          )),
+        ]),
+      ),
+
+      Expanded(
+        child: addr.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, __) => _ErrorState(
+            message: e.toString(),
+            onRetry: () => ref.invalidate(addressProvider(current)),
+          ),
+          data: (a) => _AddressContent(address: a, type: current),
+        ),
+      ),
+    ]);
+  }
+}
+
+class _EmptyModes extends StatelessWidget {
+  const _EmptyModes();
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(mainAxisSize: MainAxisSize.min, children: const [
+        Icon(Icons.warehouse_outlined, size: 64, color: EbiColors.ink3),
+        SizedBox(height: 12),
+        Text('Aucune adresse disponible',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        SizedBox(height: 6),
+        Text(
+          'Votre cargo n\'a pas encore d\'entrepôt actif en Chine. '
+          'Revenez plus tard ou contactez-le.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: EbiColors.ink3, height: 1.4),
+        ),
+      ]),
+    ),
+  );
 }
 
 class _TabBtn extends StatelessWidget {

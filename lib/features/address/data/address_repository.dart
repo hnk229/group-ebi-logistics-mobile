@@ -27,6 +27,14 @@ class AddressRepository {
     }
     return ShippingAddress.fromJson(resp.data as Map<String, dynamic>);
   }
+
+  /// Modes de transport disponibles chez le cargo (selon entrepôts loués).
+  /// Renvoie une liste parmi ['aerial', 'maritime'].
+  Future<List<String>> modes() async {
+    final resp = await _api.get('/api/client/shipping-modes');
+    final list = (resp.data as Map<String, dynamic>)['modes'] as List? ?? [];
+    return list.map((e) => e.toString()).toList();
+  }
 }
 
 final addressRepositoryProvider = Provider<AddressRepository>((ref) {
@@ -35,4 +43,9 @@ final addressRepositoryProvider = Provider<AddressRepository>((ref) {
 
 final addressProvider = FutureProvider.autoDispose.family<ShippingAddress, String>((ref, type) {
   return ref.watch(addressRepositoryProvider).get(type);
+});
+
+/// Modes de transport disponibles chez le cargo du client (['aerial','maritime']).
+final shippingModesProvider = FutureProvider.autoDispose<List<String>>((ref) {
+  return ref.watch(addressRepositoryProvider).modes();
 });

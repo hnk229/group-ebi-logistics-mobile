@@ -42,6 +42,7 @@ class _AddColisPageState extends ConsumerState<AddColisPage> {
   bool _loading = true;
   bool _submitting = false;
   String? _bootstrapError;
+  List<String> _availableModes = []; // sous-ensemble de ['aerial','maritime']
 
   final List<ArticleDraft> _articles = [ArticleDraft()];
 
@@ -62,17 +63,24 @@ class _AddColisPageState extends ConsumerState<AddColisPage> {
     final repo = ref.read(colisRepositoryProvider);
     final user = ref.read(currentUserProvider);
     try {
+      // Modes réellement disponibles chez le cargo (entrepôts loués).
+      _availableModes = await repo.shippingModes();
+      if (_availableModes.isEmpty) {
+        _bootstrapError = 'Votre cargo n\'a pas encore d\'entrepôt actif. '
+            'Vous ne pouvez pas encore déclarer de colis.';
+        return;
+      }
+
       final types = await repo.transportTypes();
-      // Sélectionne le type Avion par défaut s'il existe.
-      final avion = types.firstWhere(
-        (t) => t.code == 'aerial' || t.label.toLowerCase().contains('avion'),
+      // Mode par défaut = premier mode disponible (aérien prioritaire).
+      final defaultMode = _availableModes.contains('aerial') ? 'aerial' : _availableModes.first;
+      final defaultType = types.firstWhere(
+        (t) => t.mode == (defaultMode == 'aerial' ? 'kg' : 'cbm') || t.code == defaultMode,
         orElse: () => types.isNotEmpty ? types.first : TransportTypeRef(id: 0, code: '', label: '', mode: 'kg'),
       );
-      _transportTypeId = avion.id;
-      _transportLabel = avion.label.isNotEmpty ? avion.label : 'Avion';
-
-      final entId = await repo.entrepotIdForMode(avion.mode);
-      _entrepotId = entId;
+      _transportTypeId = defaultType.id;
+      _transportLabel = defaultMode == 'aerial' ? 'Avion' : 'Bateau';
+      _entrepotId = await repo.entrepotIdForMode(defaultMode == 'aerial' ? 'kg' : 'cbm');
 
       // Pré-remplissage depuis le profil utilisateur si dispo.
       if (user != null) {
@@ -190,25 +198,29 @@ class _AddColisPageState extends ConsumerState<AddColisPage> {
             title: 'Mode de transport',
             child: Row(
               children: [
-                Expanded(
-                  child: _TransportChoice(
-                    icon: Icons.flight_takeoff,
-                    label: 'Aérien',
-                    sub: 'Plus rapide',
-                    selected: _transportLabel == 'Avion',
-                    onTap: () => _setTransport('Avion', 'kg'),
+                // Seuls les modes dont le cargo loue un entrepôt sont proposés.
+                if (_availableModes.contains('aerial'))
+                  Expanded(
+                    child: _TransportChoice(
+                      icon: Icons.flight_takeoff,
+                      label: 'Aérien',
+                      sub: 'Plus rapide',
+                      selected: _transportLabel == 'Avion',
+                      onTap: () => _setTransport('Avion', 'kg'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _TransportChoice(
-                    icon: Icons.directions_boat,
-                    label: 'Maritime',
-                    sub: 'Plus économique',
-                    selected: _transportLabel == 'Bateau',
-                    onTap: () => _setTransport('Bateau', 'cbm'),
+                if (_availableModes.contains('aerial') && _availableModes.contains('maritime'))
+                  const SizedBox(width: 10),
+                if (_availableModes.contains('maritime'))
+                  Expanded(
+                    child: _TransportChoice(
+                      icon: Icons.directions_boat,
+                      label: 'Maritime',
+                      sub: 'Plus économique',
+                      selected: _transportLabel == 'Bateau',
+                      onTap: () => _setTransport('Bateau', 'cbm'),
+                    ),
                   ),
-                ),
               ],
             ),
           ),

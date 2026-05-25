@@ -32,6 +32,14 @@ class ColisRepository {
     return ColisStats.fromJson(resp.data as Map<String, dynamic>);
   }
 
+  /// Modes de transport disponibles chez le cargo (selon entrepôts loués) :
+  /// sous-ensemble de ['aerial', 'maritime'].
+  Future<List<String>> shippingModes() async {
+    final resp = await _api.get('/api/client/shipping-modes');
+    final list = (resp.data as Map<String, dynamic>)['modes'] as List? ?? [];
+    return list.map((e) => e.toString()).toList();
+  }
+
   /// Liste des types de transport actifs (pour le wizard de déclaration).
   Future<List<TransportTypeRef>> transportTypes() async {
     final resp = await _api.get('/api/client/transport-types');
