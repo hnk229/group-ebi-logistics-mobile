@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../core/config/env.dart';
 import '../../core/storage/prefs.dart';
@@ -154,17 +155,14 @@ class _SplashPageState extends ConsumerState<SplashPage> with TickerProviderStat
                 ),
               ),
 
-              const Spacer(flex: 4),
+              const Spacer(flex: 3),
 
-              // Animation de chargement discrète
+              // Camion de livraison animé (Lottie) — chargement thématique.
               FadeTransition(
                 opacity: _textFade,
-                child: SizedBox(
-                  width: 38, height: 38,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(EbiColors.white.withValues(alpha: 0.85)),
-                  ),
+                child: Lottie.asset(
+                  'assets/lottie/splash-truck.json',
+                  width: 180, height: 120, fit: BoxFit.contain,
                 ),
               ),
 

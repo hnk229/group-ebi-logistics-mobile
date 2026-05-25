@@ -6,6 +6,7 @@ import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
 import '../../../shared/widgets/ebi_button.dart';
 import '../../../shared/widgets/notification_bell.dart';
+import '../../../shared/widgets/lottie_loader.dart';
 import '../data/address_repository.dart';
 
 /// Page principale : adresse Chine copiable pour AliExpress / Taobao / 1688 / WeChat.
@@ -33,7 +34,7 @@ class _AddressPageState extends ConsumerState<AddressPage> {
       ),
       body: SafeArea(
         child: modesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const LottieLoader(),
           error: (e, __) => _ErrorState(
             message: 'Impossible de charger vos adresses.',
             onRetry: () => ref.invalidate(shippingModesProvider),
@@ -104,7 +105,7 @@ class _AddressPageState extends ConsumerState<AddressPage> {
 
       Expanded(
         child: addr.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const LottieLoader(),
           error: (e, __) => _ErrorState(
             message: e.toString(),
             onRetry: () => ref.invalidate(addressProvider(current)),

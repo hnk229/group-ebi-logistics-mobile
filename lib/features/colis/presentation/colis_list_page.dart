@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
 import '../../../shared/utils/date_format.dart';
+import '../../../shared/widgets/lottie_loader.dart';
 import '../../../shared/widgets/notification_bell.dart';
 import '../data/colis_models.dart';
 import '../data/colis_repository.dart';
@@ -32,7 +33,7 @@ class ColisListPage extends ConsumerWidget {
         ],
       ),
       body: items.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const LottieLoader(),
         error: (_, __) => _ErrorState(onRetry: () => ref.invalidate(colisListProvider)),
         data: (list) {
           if (list.isEmpty) {
