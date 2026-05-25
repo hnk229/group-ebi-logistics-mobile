@@ -31,6 +31,15 @@ class MainShell extends StatelessWidget {
       // Le body s'étend derrière la barre flottante.
       extendBody: true,
       body: child,
+      // FAB messagerie global : accessible depuis les 4 onglets.
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'fab-messages',
+        onPressed: () => context.push('/chat'),
+        backgroundColor: EbiColors.blue,
+        foregroundColor: EbiColors.white,
+        tooltip: 'Messagerie',
+        child: const Icon(Icons.chat_bubble_outline),
+      ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(

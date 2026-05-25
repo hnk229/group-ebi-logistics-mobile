@@ -21,14 +21,15 @@ class ColisListPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Mes colis'),
         backgroundColor: EbiColors.white,
-        actions: const [NotificationBell()],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/colis/new'),
-        backgroundColor: EbiColors.blue,
-        foregroundColor: EbiColors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Déclarer un colis'),
+        actions: [
+          TextButton.icon(
+            onPressed: () => context.push('/colis/new'),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Déclarer'),
+            style: TextButton.styleFrom(foregroundColor: EbiColors.blue),
+          ),
+          const NotificationBell(),
+        ],
       ),
       body: items.when(
         loading: () => const Center(child: CircularProgressIndicator()),
